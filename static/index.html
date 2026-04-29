@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GestCasa</title>
+
+<style>
+body {
+ font-family: Arial;
+ background: #0f172a;
+ color: white;
+ text-align: center;
+}
+
+input, button {
+ padding:10px;
+ margin:5px;
+ border-radius:10px;
+ border:none;
+}
+
+button {
+ background:#22c55e;
+ color:white;
+}
+</style>
+</head>
+
+<body>
+
+<h2>GestCasa 💰</h2>
+
+<h3>Login / Registrazione</h3>
+<input id="user" placeholder="username">
+<input id="pass" type="password" placeholder="password">
+<br>
+<button onclick="register()">Registrati</button>
+<button onclick="login()">Login</button>
+
+<hr>
+
+<h3>Aggiungi spesa</h3>
+<input id="desc" placeholder="descrizione">
+<input id="imp" placeholder="importo">
+<br>
+<button onclick="add()">Aggiungi</button>
+
+<h2 id="tot">Totale: € 0</h2>
+
+<script>
+let uid = null;
+
+async function register(){
+ await fetch("/register",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    username:user.value,
+    password:pass.value
+  })
+ });
+ alert("Registrato!");
+}
+
+async function login(){
+ let r = await fetch("/login",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    username:user.value,
+    password:pass.value
+  })
+ });
+
+ if(r.status != 200){
+  alert("Errore login");
+  return;
+ }
+
+ let d = await r.json();
+ uid = d.user_id;
+ load();
+}
+
+async function add(){
+ if(!uid){
+  alert("Fai login prima!");
+  return;
+ }
+
+ await fetch("/spesa",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+    user_id:uid,
+    descrizione:desc.value,
+    importo:parseFloat(imp.value)
+  })
+ });
+
+ load();
+}
+
+async function load(){
+ let r = await fetch("/dashboard/"+uid);
+ let d = await r.json();
+ tot.innerText = "Totale: € " + d.totale;
+}
+</script>
+
+</body>
+</html>
